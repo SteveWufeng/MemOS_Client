@@ -1,4 +1,4 @@
-# memos-docker-client
+# MemOS_Client
 
 A lightweight Python client wrapper for the **MemOS Docker REST API**.
 
@@ -28,7 +28,7 @@ curl http://localhost:8000/health
 ## Installation
 
 ```bash
-pip install git+https://github.com/SteveWufeng/MemOS_Docker_Client.git
+pip install git+https://github.com/SteveWufeng/MemOS_Client.git
 ```
 
 ---
