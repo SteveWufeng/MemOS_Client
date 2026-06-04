@@ -7,7 +7,7 @@ name = "memos-docker"
 version = "0.1.0"
 description = "Python client wrapper for the MemOS Docker REST API — search, add, chat, and manage memories from any project"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = { text = "AGPL-3.0-only" }
 authors = [
     { name = "Yiyuan (Steve) Wufeng", email = "yfeng219@gmail.com" },
 ]

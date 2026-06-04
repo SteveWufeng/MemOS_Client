@@ -28,13 +28,7 @@ curl http://localhost:8000/health
 ## Installation
 
 ```bash
-pip install memos-docker
-```
-
-Or install directly from the repo:
-
-```bash
-pip install git+https://github.com/SteveWufeng/memos-docker-client.git
+pip install git+https://github.com/SteveWufeng/MemOS_Docker_Client.git
 ```
 
 ---
@@ -211,4 +205,4 @@ All three work — MemOS auto-creates the namespace in the graph DB on first use
 
 ## License
 
-MIT
+AGPL-3.0
