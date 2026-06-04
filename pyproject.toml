@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta:__legacy__"
+
+[project]
+name = "memos-docker"
+version = "0.1.0"
+description = "Python client wrapper for the MemOS Docker REST API — search, add, chat, and manage memories from any project"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "Yiyuan (Steve) Wufeng", email = "yfeng219@gmail.com" },
+]
+dependencies = [
+    "httpx>=0.27",
+]
+
+[project.scripts]
+memos-docker = "memos_docker.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["memos_docker*"]
