@@ -36,9 +36,9 @@ pip install git+https://github.com/SteveWufeng/MemOS_Client.git
 ## Package structure
 
 ```
-memos_docker/
+memos_client/
 ├── __init__.py        # Public API: MemOSClient, Memory, SearchResults, …
-├── __main__.py        # python -m memos_docker entry point
+├── __main__.py        # python -m memos_client entry point
 ├── types.py           # Memory, SearchResults, ChatResponse, HealthStatus dataclasses
 ├── models.py          # Response wrappers for /product/* API responses
 ├── client.py          # MemOSClient — HTTP client for the Docker API
@@ -52,7 +52,7 @@ memos_docker/
 ### Connect
 
 ```python
-from memos_docker import MemOSClient
+from memos_client import MemOSClient
 
 client = MemOSClient()                          # http://localhost:8000
 # client = MemOSClient("http://192.168.1.50:8000")
@@ -143,17 +143,17 @@ client.add_feedback(
 
 ## CLI
 
-Installation adds the `memos-docker` CLI command:
+Installation adds the `memos-client` CLI command:
 
 ```bash
-memos-docker --help
-memos-docker health
-memos-docker search "food" --user stev
-memos-docker add-memory --user stev --text "I like hiking" --sync
-memos-docker chat --user stev "What do you know about me?"
-memos-docker get-memories --cube stev
-memos-docker delete-memory --ids uuid-1 --writable-cubes stev
-memos-docker feedback --user stev --content "Great service"
+memos-client --help
+memos-client health
+memos-client search "food" --user stev
+memos-client add-memory --user stev --text "I like hiking" --sync
+memos-client chat --user stev "What do you know about me?"
+memos-client get-memories --cube stev
+memos-client delete-memory --ids uuid-1 --writable-cubes stev
+memos-client feedback --user stev --content "Great service"
 ```
 
 Add `--json` for JSON output (useful for scripting).
