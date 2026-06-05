@@ -1,26 +1,67 @@
-# MemOS_Client
+# MemOS Client
 
-A lightweight Python client wrapper for the **MemOS Docker REST API**.
+A lightweight Python client wrapper for the **MemOS REST API**.
 
-This is **not** the official [MemOS](https://github.com/MemTensor/MemOS) project. It is a third-party convenience module that wraps the `/product/*` endpoints (`search`, `add`, `chat`, `get_memory`, `delete_memory`, `feedback`) into a clean importable API — so your project can communicate with a running MemOS Docker container in a few lines of code.
+This is not the official [MemOS](https://github.com/MemTensor/MemOS) project. It is a third-party convenience module that wraps the `/product/*` endpoints (`search`, `add`, `chat`, `get_memory`, `delete_memory`, `feedback`) into a clean importable API.
 
 ---
 
-## Prerequisites
+## Quick start (self-contained Docker setup)
 
-You need a running **MemOS Docker stack** from the [official MemOS project](https://github.com/MemTensor/MemOS):
+This repo bundles everything needed to run **MemOS + Neo4j + Qdrant** in a single container. No external dependencies or monorepo checkout required.
 
 ```bash
-git clone https://github.com/MemTensor/MemOS.git
-cd MemOS/docker
+# 1. Clone ONLY this repo
+git clone https://github.com/SteveWufeng/MemOS_Client.git
+cd MemOS_Client
+
+# 2. (Optional) Create a .env file
+echo "OPENAI_API_KEY=sk-..." > .env
+
+# 3. Build & start
 docker compose up -d
+
+# 4. Verify
+curl http://localhost:8000/health
+
+# 5. Use the client
+pip install .
+python -c "from memos_client import MemOSClient; c=MemOSClient(); print(c.health())"
 ```
 
-Verify it's alive:
+### What's included
+
+| File | Purpose |
+|---|---|
+| `Dockerfile` | Builds image with MemOS (PyPI) + Neo4j 5.26.6 + Qdrant v1.15.3 |
+| `supervisord.conf` | Runs all three processes under a single supervisor |
+| `docker-compose.yml` | One-service compose file with persistent volumes |
+
+### Ports
+
+| Port | Service |
+|---|---|
+| `8000` | MemOS REST API |
+| `7474` | Neo4j HTTP browser |
+| `7687` | Neo4j Bolt |
+| `6333` | Qdrant HTTP |
+| `6334` | Qdrant gRPC |
+
+### Stopping
 
 ```bash
-curl http://localhost:8000/health
-# {"status":"healthy","service":"memos","version":"1.0.1"}
+docker compose down -v   # -v also removes data volumes
+```
+
+---
+
+## Prerequisites (if using your own MemOS instance)
+
+If you already have a MemOS server running elsewhere, you don't need Docker at all.
+
+```bash
+pip install .
+export MEMOS_BASE_URL=http://your-server:8000
 ```
 
 ---
@@ -37,11 +78,11 @@ pip install git+https://github.com/SteveWufeng/MemOS_Client.git
 
 ```
 memos_client/
-├── __init__.py        # Public API: MemOSClient, Memory, SearchResults, …
+├── __init__.py        # Public API: MemOSClient, Memory, SearchResults, ...
 ├── __main__.py        # python -m memos_client entry point
 ├── types.py           # Memory, SearchResults, ChatResponse, HealthStatus dataclasses
 ├── models.py          # Response wrappers for /product/* API responses
-├── client.py          # MemOSClient — HTTP client for the Docker API
+├── client.py          # MemOSClient - HTTP client for the Docker API
 └── cli.py             # CLI entry point
 ```
 
@@ -66,9 +107,9 @@ with MemOSClient() as c:
 
 ```python
 status = client.health()
-# status.status    → "healthy"
-# status.service   → "memos"
-# status.version   → "1.0.1"
+# status.status    -> "healthy"
+# status.service   -> "memos"
+# status.version   -> "1.0.1"
 ```
 
 ### Search
@@ -80,9 +121,9 @@ results = client.search(
     top_k=10,
 )
 
-len(results)                   # → int
-results[0]                     # → Memory
-results.top                     # → Memory with highest score | None
+len(results)                   # -> int
+results[0]                     # -> Memory
+results.top                     # -> Memory with highest score | None
 
 for m in results:
     print(m.id, m.content, m.score)
@@ -97,8 +138,8 @@ result = client.add_memory(
     async_mode="sync",
 )
 
-result.success       # → bool
-result.memory_ids    # → ["uuid-..."]
+result.success       # -> bool
+result.memory_ids    # -> ["uuid-..."]
 ```
 
 ### Chat
@@ -109,7 +150,7 @@ resp = client.chat(
     query="What do you know about me?",
 )
 
-resp.response        # → str
+resp.response        # -> str
 ```
 
 ### Get stored memories
@@ -166,10 +207,10 @@ MemOS uses two distinct identifiers. Here's what they mean:
 
 | Field | Role | Example |
 |-------|------|---------|
-| `user_id` | **Who** is performing the action — logged in metadata for auditing | `"alice"`, `"agent-42"` |
-| `cube_id` | **Where** the memory is stored — the actual namespace key in the graph DB | `"project-alpha"`, `"shared-team-cube"` |
+| `user_id` | **Who** is performing the action - logged in metadata for auditing | `"alice"`, `"agent-42"` |
+| `cube_id` | **Where** the memory is stored - the actual namespace key in the graph DB | `"project-alpha"`, `"shared-team-cube"` |
 
-**When you only pass `user_id`, `cube_id` defaults to the same value** — a single implicit cube per user. But they can differ:
+**When you only pass `user_id`, `cube_id` defaults to the same value** - a single implicit cube per user. But they can differ:
 
 ```python
 # Manager user writes into a project cube shared by the team
@@ -185,9 +226,9 @@ client.search("goals", user_id="dev-carol", readable_cube_ids=["project-alpha"])
 
 ### Why use separate cubes?
 
-- **Isolation** — Two cubes never see each other's memories. Keep a "personal" cube and a "work" cube in the same MemOS instance.
-- **Composition** — Search/chat can query multiple cubes at once (`readable_cube_ids=["personal", "work"]`).
-- **Sharing** — A cube can be shared across users or agents, while `user_id` still tracks who did what.
+- **Isolation** - Two cubes never see each other's memories. Keep a "personal" cube and a "work" cube in the same MemOS instance.
+- **Composition** - Search/chat can query multiple cubes at once (`readable_cube_ids=["personal", "work"]`).
+- **Sharing** - A cube can be shared across users or agents, while `user_id` still tracks who did what.
 
 ### I don't have a user concept in my app
 
@@ -199,7 +240,7 @@ MemOS always needs a namespace (`cube_id` or `user_id`). Pick one of these patte
 | **Per-session UUID** | Generate `uuid4()` per session | Ephemeral conversations |
 | **Per-agent UUID** | One UUID per agent instance | Multi-agent with isolated memory |
 
-All three work — MemOS auto-creates the namespace in the graph DB on first use.
+All three work - MemOS auto-creates the namespace in the graph DB on first use.
 
 ---
 

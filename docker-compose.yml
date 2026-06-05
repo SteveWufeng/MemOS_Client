@@ -1,0 +1,23 @@
+name: memos-dev
+
+services:
+  memos:
+    container_name: memos-all-in-one
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    network_mode: host
+    env_file:
+      - ../.env
+    environment:
+      - HF_ENDPOINT=https://hf-mirror.com
+      - NEO4J_URI=bolt://localhost:7687
+      - QDRANT_HOST=localhost
+      - QDRANT_PORT=6333
+    volumes:
+      - neo4j_data:/data
+      - qdrant_data:/qdrant/storage
+
+volumes:
+  neo4j_data:
+  qdrant_data:
