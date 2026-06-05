@@ -12,11 +12,11 @@ FROM python:3.11-slim
 # ------------------------------------------------------------------
 #   gcc/g++/build-essential/libffi   -- Python C-extension build deps
 #   curl/wget                        -- download Neo4j & Qdrant
-#   openjdk-17-jre-headless          -- Neo4j requires a JRE
+#   default-jre-headless             -- Neo4j requires a JRE
 # ------------------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     gcc g++ build-essential libffi-dev python3-dev curl wget \
-    openjdk-17-jre-headless \
+    default-jre-headless \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------------
@@ -41,9 +41,11 @@ RUN echo "dbms.security.auth_enabled=false" >> /opt/neo4j/conf/neo4j.conf
 # ------------------------------------------------------------------
 # Qdrant v1.15.3 (vector database)
 # ------------------------------------------------------------------
-RUN wget -q https://github.com/qdrant/qdrant/releases/download/v1.15.3/qdrant-x86_64-unknown-linux-gnu.tar.gz \
-    && tar -xzf qdrant-x86_64-unknown-linux-gnu.tar.gz -C / \
-    && rm qdrant-x86_64-unknown-linux-gnu.tar.gz
+RUN wget -q https://github.com/qdrant/qdrant/releases/download/v1.15.3/qdrant-aarch64-unknown-linux-musl.tar.gz \
+    && tar -xzf qdrant-aarch64-unknown-linux-musl.tar.gz \
+    && mv qdrant /usr/local/bin/qdrant \
+    && rm qdrant-aarch64-unknown-linux-musl.tar.gz \
+    && mkdir -p /qdrant/storage
 
 WORKDIR /app
 
@@ -53,14 +55,14 @@ WORKDIR /app
 ENV HF_ENDPOINT=https://hf-mirror.com
 
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir MemoryOS==2.0.17
+    && pip install --no-cache-dir MemoryOS==2.0.17 "qdrant-client~=1.15.0" langchain-text-splitters neo4j chonkie jieba redis cachetools "rank-bm25" pika
 
 # Ports: 8000 (API) | 7474 (Neo4j HTTP) | 7687 (Neo4j Bolt)
 #        6333 (Qdrant HTTP) | 6334 (Qdrant gRPC)
-EXPOSE 8000 7474 7687 6333 6334
+EXPOSE 8100 7474 7687 6333 6334
 
 # ------------------------------------------------------------------
 # Supervisor config + entrypoint
 # ------------------------------------------------------------------
-COPY docker/supervisord.conf /etc/supervisord.conf
+COPY supervisord.conf /etc/supervisord.conf
 CMD ["supervisord", "-c", "/etc/supervisord.conf"]

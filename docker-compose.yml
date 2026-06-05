@@ -4,8 +4,8 @@ services:
   memos:
     container_name: memos-all-in-one
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     network_mode: host
     env_file:
       - ../.env

@@ -22,11 +22,37 @@ echo "OPENAI_API_KEY=sk-..." > .env
 docker compose up -d
 
 # 4. Verify
-curl http://localhost:8000/health
+curl http://localhost:8100/health
 
 # 5. Use the client
 pip install .
 python -c "from memos_client import MemOSClient; c=MemOSClient(); print(c.health())"
+```
+
+### Manual testing
+
+```bash
+# Health check
+docker compose exec memos curl -s http://localhost:8100/health
+
+# Add memories
+docker compose exec memos curl -s -X POST http://localhost:8100/product/add \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "test", "messages": [{"role": "user", "content": "I love hiking"}]}'
+
+docker compose exec memos curl -s -X POST http://localhost:8100/product/add \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "test", "messages": [{"role": "user", "content": "I prefer coffee over tea"}]}'
+
+# Search by semantic similarity
+docker compose exec memos curl -s -X POST http://localhost:8100/product/search \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "test", "query": "outdoor activities", "top_k": 5}' | python3 -m json.tool
+
+# Chat with memory-augmented LLM (requires OPENAI_API_KEY in .env)
+docker compose exec memos curl -s -X POST http://localhost:8100/product/chat/complete \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "test", "query": "What do you know about me?"}' | python3 -m json.tool
 ```
 
 ### What's included
@@ -41,7 +67,7 @@ python -c "from memos_client import MemOSClient; c=MemOSClient(); print(c.health
 
 | Port | Service |
 |---|---|
-| `8000` | MemOS REST API |
+| `8100` | MemOS REST API |
 | `7474` | Neo4j HTTP browser |
 | `7687` | Neo4j Bolt |
 | `6333` | Qdrant HTTP |
@@ -95,8 +121,8 @@ memos_client/
 ```python
 from memos_client import MemOSClient
 
-client = MemOSClient()                          # http://localhost:8000
-# client = MemOSClient("http://192.168.1.50:8000")
+client = MemOSClient()                          # http://localhost:8100
+# client = MemOSClient("http://192.168.1.50:8100")
 
 # Context manager (auto-closes the HTTP session)
 with MemOSClient() as c:
